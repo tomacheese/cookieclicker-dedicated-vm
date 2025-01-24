@@ -20,7 +20,7 @@ if ($onlineState -eq "in-game") {
     if (Test-Path "nextStartGame") {
         Remove-Item "nextStartGame"
     }
-    if ($gameName -ne "Cookie Clicker" && IsRunningCookieClicker) {
+    if (($gameName -ne "Cookie Clicker") -and (IsRunningCookieClicker)) {
         # Close Steam
         Write-Output "$currentDateTime Close Steam"
         Stop-Process -Name "Cookie Clicker" -ErrorAction SilentlyContinue
