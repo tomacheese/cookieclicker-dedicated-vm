@@ -15,7 +15,7 @@ Steam 版 Cookie Clicker を専用の仮想マシンで常時稼働させるた�
 ## ファイル構成
 
 | ファイル | 説明 |
-|---------|------|
+| --- | --- |
 | `checkInGame.ps1` | Steam のゲーム状態を監視し、Cookie Clicker の起動/終了を制御 |
 | `checkInGame.bat` | `checkInGame.ps1` のバッチファイルラッパー |
 | `chromerdp-clicker-minimalize.ps1` | Chrome RDP 接続時にウィンドウを最小化 |
@@ -24,23 +24,28 @@ Steam 版 Cookie Clicker を専用の仮想マシンで常時稼働させるた�
 ## 必要要件
 
 - Windows
-- PowerShell
+- PowerShell 7 以降（`pwsh` が使用可能であること）
+- Git
 - Steam（Cookie Clicker インストール済み）
 - Chrome リモートデスクトップ（オプション）
 
 ## 設定
 
-`checkInGame.ps1` の先頭にある `$steam_username` を自分の Steam ユーザー名に変更してください。
+`checkInGame.ps1` の先頭にある `$steam_username` を自分の Steam Community カスタム URL（vanity URL）の ID 部分に変更してください。
+
+これは `https://steamcommunity.com/id/<ここの部分>` に対応します（Steam のログイン名ではありません）。
 
 ```powershell
-$steam_username = "your_steam_username"
+$steam_username = "your_vanity_url_id"
 ```
 
 ## 使用方法
 
-タスクスケジューラで `checkInGame.bat` を定期実行するよう設定してください。
+`checkInGame.bat` 自体が無限ループで動作し、内部で `timeout 180` により定期チェックを行います。そのため、タスクスケジューラで「○分ごとに定期実行」のように設定すると、多重起動してしまいます。
+
+タスクスケジューラを使う場合は、**「ログオン時に 1 回のみ実行」や「起動時に 1 回のみ実行」など、1 度だけ起動されるトリガー**に設定してください（もしくはスタートアップにショートカットを置くなどして、ログオン時に 1 回だけ起動させてください）。
 
 ```batch
-# 例: 1分ごとに実行
+REM 例: ログオン時に 1 回実行されるタスクなどから呼び出す
 checkInGame.bat
 ```
