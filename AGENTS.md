@@ -25,4 +25,5 @@
 - ログに機密情報を出力しない。
 
 ## リポジトリ固有
-- 目的: Cookie Clicker を専用 VM で自動実行・管理するための PowerShell スクリプト群です。
+- 概要: Cookie Clicker Dedicated VM
+- 詳細は `README` と `package.json` を参照
