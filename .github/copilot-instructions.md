@@ -17,12 +17,10 @@
 ## 開発コマンド
 ```powershell
 # メイン監視スクリプト実行
-.
-checkInGame.bat
+.\checkInGame.bat
 
 # ウィンドウ最小化スクリプト
-.
-chromerdp-clicker-minimalize.ps1
+.\chromerdp-clicker-minimalize.ps1
 ```
 
 ## セキュリティ / 機密情報

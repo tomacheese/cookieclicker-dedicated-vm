@@ -43,7 +43,7 @@
 ## 注意事項
 - **認証情報**: `$steam_username` などの設定値はユーザー環境に依存するため、変更する際はユーザーに確認するか、設定方法を案内する。API キーや個人的な ID などをコミットしないこと。
 - **機密情報**: ログへの機密情報出力禁止。
-- **Windows 環境**: これらのスクリプトは Windows (PowerShell 7+) 環境での動作を前提としている。Linux 環境の Gemini CLI から操作する場合、PowerShell コマンドは `pwsh -Command ...` を使用すること。
+- **Windows 環境**: これらのスクリプトは Windows (PowerShell 7+) 環境かつ Windows API (`user32.dll`) が利用可能な環境での動作を前提としている。Linux 環境の Gemini CLI から操作する場合は、WSL や Windows VM、リモート PowerShell などを用いて Windows 環境に接続し、その上で `pwsh -Command ...` を実行すること。
 - **タスクスケジューラ**: `checkInGame.bat` は無限ループするため、タスクスケジューラでは「1回のみ実行」として設定する必要がある。
 
 ## リポジトリ固有
