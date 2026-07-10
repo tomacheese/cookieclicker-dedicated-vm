@@ -1,27 +1,38 @@
-# GitHub Copilot Instructions
+# GitHub Copilot code review instructions
 
-## プロジェクト概要
-- 目的: Steam 版 Cookie Clicker を専用 VM で自動実行・管理する
-- 主な機能: 自動起動/終了、ウィンドウ最小化、Steam 連携
-- 対象ユーザー: 自分 (Cookie Clicker プレイヤー)
+Guidance for reviewing pull requests in this repository.
 
-## 共通ルール
-- 会話は日本語で行う。
-- PR とコミットは Conventional Commits に従う。
-- 日本語と英数字の間には半角スペースを入れる。
+## What this repository is
 
-## 技術スタック
-- 言語: PowerShell, Batch
-- プラットフォーム: Windows
+PowerShell/Batch scripts that keep the Steam version of Cookie Clicker running on a
+dedicated Windows VM (auto start/stop around other games, window minimization). No
+build system, package manager, or test framework.
 
-## 開発コマンド
-```powershell
-# メイン監視スクリプト実行
-.\checkInGame.bat
+## Conventions to enforce
 
-# ウィンドウ最小化スクリプト
-.\chromerdp-clicker-minimalize.ps1
-```
+- Commit messages follow Conventional Commits; descriptions are in Japanese.
+- Code comments are in Japanese; log/error messages are in English.
+- Insert a half-width space between Japanese and alphanumeric characters in comments
+  and documentation.
+- Match the existing indentation and naming style; do not reformat unrelated code.
 
-## セキュリティ / 機密情報
-- `$steam_username` などの設定値以外に、機密情報をコードに含めないこと。
+## Review focus
+
+- Process handling in `checkInGame.ps1`: `Stop-Process` / `Start-Process` calls should
+  keep the graceful-then-force pattern and the retry/timeout counters. Flag changes that
+  could leave Cookie Clicker or Steam in a stuck state or spin without an exit bound.
+- Steam XML parsing: `<onlineState>` / `<gameName>` are matched by regex against
+  `steamcommunity.com/id/<user>?xml=1`. Flag assumptions that break when a field is
+  absent (e.g. `$Matches` used without a successful match).
+- The `nextStartGame` marker file drives the deferred-restart logic; flag changes that
+  create or remove it inconsistently.
+- Window scripts use `user32.dll` P/Invoke and are Windows-only. Flag anything assuming
+  a cross-platform runtime.
+- Secrets: flag any newly hardcoded credential, API key, or personal ID.
+
+## Known patterns — do NOT flag
+
+- `$steam_username = "book000"` is the owner's public Steam vanity URL id, not a leaked
+  secret.
+- Absence of unit tests / a CI test job is expected for this repository.
+- `checkInGame.bat` intentionally runs an infinite loop with `git pull` and `timeout`.
