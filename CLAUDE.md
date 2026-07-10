@@ -1,46 +1,68 @@
-# Claude Code Instructions
+# CLAUDE.md
 
-## 目的
-Claude Code の作業方針とプロジェクト固有ルールを示す
+## Overview
 
-## 判断記録のルール
-1. 判断内容の要約
-2. 検討した代替案
-3. 採用しなかった案とその理由
-4. 前提条件・仮定・不確実性
-5. 他エージェントによるレビュー可否
+PowerShell/Batch scripts that keep the Steam version of Cookie Clicker running on
+a dedicated Windows VM. The scripts poll the owner's Steam profile and stop Cookie
+Clicker (plus Steam) while another game is being played, restart it afterwards, and
+minimize windows on Chrome Remote Desktop connections.
 
-## プロジェクト概要
-- 目的: Steam 版 Cookie Clicker を専用 VM で自動実行・管理する
-- 主な機能: 他のゲームプレイ中の自動終了、Chrome RDP 接続時の最小化
+## Development commands
 
-## 重要ルール
-- 会話言語: 日本語
-- コミット規約: Conventional Commits
-- コメント言語: 日本語
-- エラーメッセージ: 英語
+There is no build system or package manager; run the scripts directly with
+PowerShell 7 (`pwsh`).
 
-## 環境のルール
-- ブランチ命名: Conventional Branch (short type)
-- Windows 環境前提 (PowerShell 7 以降)
+- `checkInGame.bat`: entry point. Runs an infinite loop of `git pull` +
+  `pwsh -File checkInGame.ps1` + `timeout /T 180`.
+- `pwsh -File checkInGame.ps1`: run one monitor/state-transition cycle manually.
+- `pwsh -File chromerdp-clicker-minimalize.ps1`: minimize the Cookie Clicker window.
+- `pwsh -File minimalize-steam.ps1`: minimize the Steam window.
 
-## コード改修時のルール
-- エラーメッセージの絵文字統一 (既存に従う)
-- docstring 記載 (日本語)
+## Architecture / key files
 
-## 開発コマンド
-- `checkInGame.bat`: 監視開始
-- `checkInGame.ps1`: 監視ロジック本体
+- `checkInGame.ps1`: core logic. Fetches `https://steamcommunity.com/id/<user>?xml=1`,
+  parses `<onlineState>`/`<gameName>`, and decides whether to start Cookie Clicker
+  (`steam://rungameid/1454400`) or stop it. Uses a `nextStartGame` marker file to
+  defer a restart by one cycle.
+- `chromerdp-clicker-minimalize.ps1` / `minimalize-steam.ps1`: window management via
+  `user32.dll` (`Add-Type` P/Invoke). Windows-only.
+- `checkInGame.bat`: batch wrapper that loops the PowerShell script.
 
-## アーキテクチャと主要ファイル
-- `checkInGame.ps1`: Steam API をポーリングして状態遷移を管理
-- `chromerdp-clicker-minimalize.ps1`: Chrome リモートデスクトップ接続時に Cookie Clicker ウィンドウを最小化
+## Coding conventions
 
-## テスト
-- 自動テストなし。実機動作確認が必要。
+- Language: PowerShell and Batch. Match the existing indentation and naming.
+- Code comments: Japanese. Add/update a docstring-style comment for functions and
+  complex logic.
+- Error/log messages: English. When an existing message starts with an emoji, follow
+  that style.
+- Insert a half-width space between Japanese and alphanumeric characters.
+- Commits: Conventional Commits (`<type>(<scope>): <description>`), description in
+  Japanese. Branches: Conventional Branch short form (`feat`, `fix`, ...).
 
-## 作業チェックリスト
-- 新規改修時: プロジェクト理解、ブランチ作成
-- コミット・プッシュ前: Conventional Commits 確認
-- PR 作成前: 機密情報確認
-- PR 作成後: PR 本文作成、CI 確認 (あれば)
+## Testing
+
+No automated tests and no test framework. Verification requires a real Windows
+environment with Steam and Cookie Clicker installed; behavior is confirmed by
+running the scripts and observing process/window state.
+
+## Repository-specific notes
+
+- `$steam_username` at the top of `checkInGame.ps1` is the Steam Community vanity URL
+  id (the `<id>` in `steamcommunity.com/id/<id>`), not the Steam login name. It is
+  environment/owner-specific.
+- `checkInGame.bat` self-updates via `git pull` on every loop, so committed changes to
+  the scripts take effect on the VM without manual redeploy.
+- Because the batch file loops forever with its own `timeout` interval, schedule it to
+  start only once (e.g. Task Scheduler "at logon, once" or a startup shortcut).
+  A recurring trigger would spawn duplicate loops.
+- Windows-only: the window-management scripts depend on `user32.dll`.
+
+## Security
+
+- Do not commit credentials, API keys, or personal IDs beyond the existing
+  `$steam_username` vanity id. Do not write secrets to logs.
+
+## Documentation update rules
+
+Update this file and `README.md` when scripts are added/removed/renamed, the run
+commands change, or the Task Scheduler / VM setup assumptions change.
