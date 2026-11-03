@@ -1,4 +1,3 @@
-# Import user32.dll functions for window management
 Add-Type @"
 using System;
 using System.Runtime.InteropServices;
