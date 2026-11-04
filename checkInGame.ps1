@@ -21,7 +21,6 @@ if ($onlineState -eq "in-game") {
         Remove-Item "nextStartGame"
     }
     if (($gameName -ne "Cookie Clicker") -and (IsRunningCookieClicker)) {
-        # Close Steam
         Write-Output "$currentDateTime Close Steam"
         Stop-Process -Name "Cookie Clicker" -ErrorAction SilentlyContinue
         Stop-Process -Name "steam" -ErrorAction SilentlyContinue
@@ -86,7 +85,7 @@ while ($true) {
 
 Start-Sleep -Seconds 3
 
-# Optional: Uncomment if you have a script for minimizing the Cookie Clicker window
+# 任意: Cookie Clicker のウィンドウを最小化するスクリプトがある場合はコメントを外す
 # Start-Process -FilePath ".\minimalize-CookieClicker.vbs"
 
 Write-Output "$currentDateTime started"

@@ -1,38 +1,21 @@
-# GitHub Copilot code review instructions
+# GitHub Copilot コードレビュー指示
 
-Guidance for reviewing pull requests in this repository.
+プロジェクトの概要、規約、リポジトリ固有の注意点は [AGENTS.md](../AGENTS.md) を参照してください。レビューは日本語で行ってください。
 
-## What this repository is
+## 規約
 
-PowerShell/Batch scripts that keep the Steam version of Cookie Clicker running on a
-dedicated Windows VM (auto start/stop around other games, window minimization). No
-build system, package manager, or test framework.
+- 新規に追加するログ / エラーメッセージは英語で書く。既存の日本語の `Write-Host` の実行時文字列は変更しない。既存メッセージが絵文字で始まる場合はそのスタイルに合わせる。
 
-## Conventions to enforce
+## レビューの重点
 
-- Commit messages follow Conventional Commits; descriptions are in Japanese.
-- Code comments are in Japanese; log/error messages are in English.
-- Insert a half-width space between Japanese and alphanumeric characters in comments
-  and documentation.
-- Match the existing indentation and naming style; do not reformat unrelated code.
+- `checkInGame.ps1` のプロセス制御: `Stop-Process` / `Start-Process` の「通常終了 → 強制終了」パターンとリトライ / タイムアウトのカウンターが維持されているか。Cookie Clicker や Steam が固まる変更、終了条件のない待機ループを指摘する。
+- Steam の XML 解析: `<onlineState>` / `<gameName>` は正規表現で抽出している。フィールドが無い場合に壊れる前提 (`-match` の成功を確認せず `$Matches` を使うなど) を指摘する。
+- `nextStartGame` マーカーファイルは再起動の遅延ロジックを制御する。作成と削除の整合性を崩す変更を指摘する。
+- ウィンドウ操作スクリプトは `user32.dll` の P/Invoke を使う Windows 専用。クロスプラットフォームを前提にした変更を指摘する。
+- 秘密情報: 新たにハードコードされた認証情報、API キー、個人 ID を指摘する。
 
-## Review focus
+## 指摘しなくてよいもの
 
-- Process handling in `checkInGame.ps1`: `Stop-Process` / `Start-Process` calls should
-  keep the graceful-then-force pattern and the retry/timeout counters. Flag changes that
-  could leave Cookie Clicker or Steam in a stuck state or spin without an exit bound.
-- Steam XML parsing: `<onlineState>` / `<gameName>` are matched by regex against
-  `steamcommunity.com/id/<user>?xml=1`. Flag assumptions that break when a field is
-  absent (e.g. `$Matches` used without a successful match).
-- The `nextStartGame` marker file drives the deferred-restart logic; flag changes that
-  create or remove it inconsistently.
-- Window scripts use `user32.dll` P/Invoke and are Windows-only. Flag anything assuming
-  a cross-platform runtime.
-- Secrets: flag any newly hardcoded credential, API key, or personal ID.
-
-## Known patterns — do NOT flag
-
-- `$steam_username = "book000"` is the owner's public Steam vanity URL id, not a leaked
-  secret.
-- Absence of unit tests / a CI test job is expected for this repository.
-- `checkInGame.bat` intentionally runs an infinite loop with `git pull` and `timeout`.
+- `$steam_username = "book000"` はオーナーの公開 Steam カスタム URL の ID であり、秘密情報ではない。
+- ユニットテストや CI のテストジョブが無いのはこのリポジトリでは想定どおり。
+- `checkInGame.bat` が `git pull` と `timeout` で無限ループするのは意図した動作。
